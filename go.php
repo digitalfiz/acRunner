@@ -1,7 +1,7 @@
 <?php
-include "acRunner.php";
+include "acRunner/acRunner.php";
 
-
+//This is an example file
 
 
 // I include mine externally so you wont know them :P
@@ -14,12 +14,7 @@ include "mysql.php";
 //define('MYSQL_DATABASE', 'database');
 //define('SERVER_ID', '1');
 
-
-// I did this because mines in a subdir :)
-$acServer = new acRunner('sh ../server.sh');
-
-// You can do this if you extract the files in the same folder
-// $acServer = new acRunner();
+$acServer = new acRunner();
 
 
 ?>
