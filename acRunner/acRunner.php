@@ -83,11 +83,8 @@ class acRunner
 			self::startServer();
 			self::outputLog("Server died lets restart it!");
 			$restarts++;
-			if($restarts > 10)
-			{
-				// Something went wrong we should just stop and notify the owner
-				break;
-			}
+			// Something went wrong we should just stop and notify the owner
+			if($restarts > 10) { break; }
 		}
 		$this->closeUp();
 
