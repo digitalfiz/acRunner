@@ -31,6 +31,7 @@
 class acRunner
 {
 	public $cmd;
+	public $cwd;
 	public $db;
 	public $pipes;
 	public $acRunner_pid;
@@ -43,12 +44,20 @@ class acRunner
 	/**
 	* This is the constructor. Nothing more... nothing less...
 	*
-	* @param	string $cmd		Command to run. Default should be fine but override is provided encase you put acRunner in a subdir of the ac server
+	* @param	string $cmd		Command to run. Default should be fine but override is provided encase you put acRunner in a subdir of the ac server.
+	* @param	string $cwd		Current working Directory. This is for being able to move demos around and such.
 	* @access public
 	*/
-	function __construct($cmd='sh ./server.sh')
+	function __construct($cmd='sh ./server.sh', $cwd='')
 	{
+		if($cwd == '') { $cwd = __DIR__; }
+
+		$this->cwd = $cwd;
 		$this->cmd = $cmd;
+
+		self::outputLog($cwd);
+
+
 		declare(ticks = 1);
 		$this->acRunner_pid = posix_getpid();
 		
@@ -63,7 +72,7 @@ class acRunner
 		mysql_query("delete from `logs`");
 		
 		
-		echo "acRunner PID: ".$this->acRunner_pid."\n";
+		self::outputLog("acRunner PID: ".$this->acRunner_pid."\n");
 
 		// This will keep track of how many times server is restart
 		$restarts = 0;
@@ -121,7 +130,7 @@ class acRunner
 		$status = proc_get_status($this->fp);
 		$this->server_pid = $status['pid'];
 
-		echo "Server PID: ".$this->server_pid."\n";
+		self::outputLog("Server PID: ".$this->server_pid);
 
 		pcntl_signal(SIGUSR1, array($this, 'closeUp'));
 		pcntl_signal(SIGTERM, array($this, 'closeUp'));
