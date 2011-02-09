@@ -1,7 +1,6 @@
 
-
 USAGE:
----------------------------------------------
+=============================================
 
 First extract the files into your server directory or git pull them. The go.php 
 should be in the server dir with server.sh and there should be a sub directory 
@@ -31,3 +30,29 @@ Once that is done you can simply run the server like so:
 $ php go.php
 
 This is assuming you have your server setup the way you want it already.
+
+
+
+INFORMATION ON DATABASE:
+=============================================
+
+What are these tables and how do I use them.
+
+---------------------------------------------
+current_game
+
+	This is the realtime stats of the current game. It provides all the same information the tab 
+	button does in game plus a little extra
+
+
+---------------------------------------------
+logs
+
+	This is an original table that can be used to spit the raw logs too.
+
+
+
+---------------------------------------------
+options
+
+	This table contains the current game mode and current map.
