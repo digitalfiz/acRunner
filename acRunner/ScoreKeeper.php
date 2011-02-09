@@ -67,7 +67,7 @@ class ScoreKeeper
 
 
 		// Realtime game stats
-		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `current_game` (`cn` INT NOT NULL, `player` VARCHAR(15) NOT NULL, `team` VARCHAR(4) NOT NULL, `flags` INT NOT NULL, `score` INT NOT NULL, `frags` INT NOT NULL, `deaths` INT NOT NULL, `tks` INT NOT NULL, `ping` INT NOT NULL, `role` VARCHAR(6) NOT NULL, `host` VARCHAR(50) NOT NULL, `active` int(11) NOT NULL DEFAULT '1', PRIMARY KEY (`cn`)) ENGINE = MyISAM;");
+		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `current_game` (`cn` INT NOT NULL, `player` VARCHAR(15) NOT NULL, `team` VARCHAR(4) NOT NULL, `flags` INT NOT NULL, `score` INT NOT NULL, `frags` INT NOT NULL, `deaths` INT NOT NULL, `tks` INT NOT NULL, `ping` INT NOT NULL, `role` VARCHAR(6) NOT NULL, `host` VARCHAR(50) NOT NULL, `active` int(11) NOT NULL DEFAULT '1') ENGINE = MyISAM;");
 
 
 		self::mysqlQuery("CREATE TABLE `options` (`id` INT NOT NULL, `name` VARCHAR(20) NOT NULL, `value` VARCHAR(255) NOT NULL) ENGINE = MyISAM;");
@@ -129,7 +129,7 @@ class ScoreKeeper
 	public function process($log)
 	{
 		// You might want to comment this out if you dont have a way to clear out the log. If can make a rather large table relatively fast
-		self::mysqlQuery("insert into `logs` set `sid` = '".SERVER_ID."', `log` = '".addslashes($buffer)."', `time` = '".time()."'") or die(mysql_error());
+		self::mysqlQuery("insert into `logs` set `sid` = '".SERVER_ID."', `log` = '".addslashes($log)."', `time` = '".time()."'") or die(mysql_error());
 
 
 		// Catch Connections
