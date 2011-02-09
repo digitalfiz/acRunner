@@ -36,7 +36,11 @@ This is assuming you have your server setup the way you want it already.
 INFORMATION ON DATABASE:
 =============================================
 
-What are these tables and how do I use them.
+What are these tables and how do I use them. If the mysql information is correct the tables will be
+automatically created so you don't need to do anything but make sure the login information is correct.
+
+I would reccomend deleting all tables created in previous versions when you upgrade. No "upgrade" process
+has been created yet.
 
 ---------------------------------------------
 current_game
