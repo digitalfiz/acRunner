@@ -140,9 +140,9 @@ class ScoreKeeper
 		// Catch Connections
 		if(preg_match("/logged in \(/i", $log) || preg_match("/logged in using/i", $log))
 		{
-			$e = explode("]", substr($log, 1));
+			$e = explode("]", substr($log, 1), 2);
 			$ip = $e[0];
-			$e = explode("logged in", $e[1]);
+			$e = explode("logged in", $e[1], 2);
 			$name = trim($e[0]);
 
 
@@ -171,9 +171,9 @@ class ScoreKeeper
 		// Catch Disconnects
 		if(preg_match("/disconnected client/i", $log))
 		{
-			$e = explode("] disconnected client", substr($log, 1));
+			$e = explode("] disconnected client", substr($log, 1), 2);
 			$ip = $e[0];
-			$e = explode(" cn ", $e[1]);
+			$e = explode(" cn ", $e[1], 2);
 			$name = trim($e[0]);
 			
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `active` = '0' where `player` = '".$name."'");
@@ -184,7 +184,7 @@ class ScoreKeeper
 		if(preg_match("/^Game start: (.*?)$/", $log, $m))
 		{
 			// Get Mode
-			list($mode, $rest) = explode(" on ", $m[1]);
+			list($mode, $rest) = explode(" on ", $m[1], 2);
 			self::setOption("current_mode", $mode);
 			
 			$e = explode(",", $rest);
@@ -318,3 +318,5 @@ class ScoreKeeper
 
 
 }
+
+?>
