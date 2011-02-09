@@ -1,5 +1,6 @@
 <?php
 include "acRunner/acRunner.php";
+include "acRunner/ScoreKeeper.php";
 
 //This is an example file
 
