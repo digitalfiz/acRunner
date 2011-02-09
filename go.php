@@ -10,6 +10,7 @@ include "mysql.php";
 
 // Comment out the include above and uncomment the lines below to make this script work.
 //define('MYSQL_HOST', 'localhost');
+//define('MYSQL_PREFIX, 'acRunner');
 //define('MYSQL_USERNAME', 'username');
 //define('MYSQL_PASSWORD', 'password');
 //define('MYSQL_DATABASE', 'database');
