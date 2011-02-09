@@ -1,8 +1,33 @@
 
 
+USAGE:
+---------------------------------------------
 
+First extract the files into your server directory or git pull them. The go.php 
+should be in the server dir with server.sh and there should be a sub directory 
+called acRunner. If this is true it is setup correctly.
 
+Next you have to modify the go.php and comment out this line:
 
+include "mysql.php";
 
+If is for my external login information because I am lazy and git ignore is so 
+much easier then changing the password everytime I go to commit :P
 
-Nothing here yet sorry....
+Then you should see something like this:
+
+//define('MYSQL_HOST', 'localhost');
+//define('MYSQL_USERNAME', 'username');
+//define('MYSQL_PASSWORD', 'password');
+//define('MYSQL_DATABASE', 'database');
+//define('SERVER_ID', '1');
+
+Uncomment these lines and set them correctly. They are pretty self xplainitory. SERVER_ID
+is really nothing right now it can be used in the future for multi servers. Its just forward 
+thinking on my part.
+
+Once that is done you can simply run the server like so:
+
+$ php go.php
+
+This is assuming you have your server setup the way you want it already.

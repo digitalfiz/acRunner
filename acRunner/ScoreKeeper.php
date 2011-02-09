@@ -24,7 +24,7 @@
 
 
 /**
- * This is the main acRunner class that contains all the main features of the toolset
+ * This is the ScoreKeeper class that will be responsible for manipulating the database to keep track of scores. Both realtime and long running.
  * @package acRunner
  * @author Marc Seiler
  */
@@ -34,8 +34,6 @@ class ScoreKeeper
 	/**
 	* This is the constructor. Nothing more... nothing less...
 	*
-	* @param	string $cmd		Command to run. Default should be fine but override is provided encase you put acRunner in a subdir of the ac server.
-	* @param	string $cwd		Current working Directory. This is for being able to move demos around and such.
 	* @access public
 	*/
 	function __construct()
