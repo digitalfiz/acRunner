@@ -79,6 +79,9 @@ class ScoreKeeper
 		self::setOption("current_map", "");
 		self::setOption("current_mode", "");
 
+		// Long run stats table
+		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."player_stats` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `frags` INT NOT NULL, `slashes` INT NOT NULL, `headshots` INT NOT NULL, `splaters` INT NOT NULL, `gibs` INT NOT NULL, `flags` INT NOT NULL, `tks` INT NOT NULL, `suicides` INT NOT NULL) ENGINE = MyISAM;");
+
 	}
 
 
@@ -101,6 +104,23 @@ class ScoreKeeper
 
 		// if its not blank we update it
 		if($res['name'] != '') { self::mysqlQuery("update `".$this->dbprefix."options` set `value` = '".$value."' where `name` = '".$option."'"); }
+	}
+
+
+	/**
+	* Function to clean empty entries from an arrya
+	*
+	* @param	string $array			array to clean up
+	*
+	* @access public
+	*/
+	public function cleanArray($array)
+	{
+		foreach($array as $k=>$a)
+		{
+			if($a != "") { $new[$k] = $a; }
+		}
+		return $new;
 	}
 
 
@@ -134,8 +154,8 @@ class ScoreKeeper
 	public function process($log)
 	{
 		// You might want to comment this out if you dont have a way to clear out the log. If can make a rather large table relatively fast
-		self::mysqlQuery("insert into `".$this->dbprefix."logs` set `sid` = '".SERVER_ID."', `log` = '".addslashes($log)."', `time` = '".time()."'") or die(mysql_error());
-
+		//self::mysqlQuery("insert into `".$this->dbprefix."logs` set `sid` = '".SERVER_ID."', `log` = '".addslashes($log)."', `time` = '".time()."'") or die(mysql_error());
+		// Commented out because its rather useless. You can uncomment it if you want.
 
 		// Catch Connections
 		if(preg_match("/logged in \(/i", $log) || preg_match("/logged in using/i", $log))
@@ -155,17 +175,17 @@ class ScoreKeeper
 			if($res['player'] == '')
 			{
 				self::mysqlQuery("insert into `".$this->dbprefix."current_game` set `player` = '".$name."', `host` = '".$ip."', `role` = 'normal'");
-				acRunner::outputLog("New Player!");
 			}
 			// if not blank its a returning player
 			if($res['player'] != '')
 			{
 				self::mysqlQuery("update `".$this->dbprefix."current_game` set `active` = '1', `host` = '".$ip."' where `player` = '".$name."'");
-				acRunner::outputLog("Player Already Exist!");
 			}
 
-
-
+			// Now lets do the same for the player stats table
+			$result = self::mysqlQuery("select * from `".$this->dbprefix."player_stats` where `player` = '".$name."'");
+			$res = mysql_fetch_assoc($result);
+			if($res['player'] == '') { self::mysqlQuery("insert into `".$this->dbprefix."player_stats` set `player` = '".$name."'"); }
 
 		}
 		// Catch Disconnects
@@ -201,9 +221,36 @@ class ScoreKeeper
 
 			// Also for cleanliness lets clear out inactive players.
 			self::mysqlQuery("delete from `".$this->dbprefix."current_game` where `active` = 0");
+
+
+			// We do this to make sure that it gets set. had some instances where if a game started over 
+			//right at the new round part it would stay in that mode
+			$this->newround = FALSE;
 		}
 
 
+		// Catch New Round
+		if(preg_match("/^Game status: (.*?)$/", $log, $m)) { $this->newround = TRUE; }
+		// unset new round crap
+		if(preg_match("/Team  CLA:/", $log, $m) && $this->newround == TRUE) { $this->newround = FALSE; }
+
+
+		if($this->newround == TRUE)
+		{
+			$ex = explode(" ", $log);
+			// Now lets clean the empty spaces, very important!
+			$ex = self::cleanArray($ex);
+
+			$number = array_shift($ex);
+			$name = array_shift($ex);
+			$team = array_shift($ex);
+
+			// if this is a number it must be their cn
+			if(is_numeric($number)) { self::mysqlQuery("update `".$this->dbprefix."current_game` set `cn` = '".$number."', `team` = '".$team."' where `player` = '".$name."'"); }
+
+
+
+		}
 
 
 		//********************************************************************************//
@@ -230,8 +277,14 @@ class ScoreKeeper
 		// Catch Frags
 		if(preg_match("/^\[(.*?)\] (.*?) fragged (.*?)$/", $log, $m) && !preg_match("/fragged teammate/", $log))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`+1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+
+			// Long Running Stats stuff
+			
+
+
 		}
 		// Catch slashes
 		if(preg_match("/^\[(.*?)\] (.*?) slashed (.*?)$/", $log, $m) && !preg_match("/slashed teammate/", $log))
