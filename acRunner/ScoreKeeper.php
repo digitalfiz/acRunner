@@ -80,7 +80,10 @@ class ScoreKeeper
 		self::setOption("current_mode", "");
 
 		// Long run stats table
-		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."player_stats` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `frags` INT NOT NULL, `slashes` INT NOT NULL, `headshots` INT NOT NULL, `splaters` INT NOT NULL, `gibs` INT NOT NULL, `flags` INT NOT NULL, `tks` INT NOT NULL, `suicides` INT NOT NULL) ENGINE = MyISAM;");
+		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."player_stats` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `frags` INT NOT NULL, `slashes` INT NOT NULL, `headshots` INT NOT NULL, `splatters` INT NOT NULL, `gibs` INT NOT NULL, `flags` INT NOT NULL, `tks` INT NOT NULL, `suicides` INT NOT NULL) ENGINE = MyISAM;");
+
+		// chat log table
+		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."chat` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `destination` VARCHAR(5) NOT NULL, `chat` VARCHAR(255) NOT NULL, `ip` VARCHAR(30) NOT NULL, `time` INT NOT NULL) ENGINE = MyISAM;");
 
 	}
 
@@ -121,6 +124,19 @@ class ScoreKeeper
 			if($a != "") { $new[$k] = $a; }
 		}
 		return $new;
+	}
+
+
+	/**
+	* Function to clean out older chat logs. About an hour is fine no?
+	*
+	* @access public
+	*/
+	public function cleanChat()
+	{
+		// Now lets keep the chat cleaned up. Anything older then an hour is emptied out.
+		$time = time() - (60 * 60);
+		self::mysqlQuery("delete from `".$this->dbprefix."chat` where `time` < ".$time."");
 	}
 
 
@@ -198,6 +214,17 @@ class ScoreKeeper
 			
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `active` = '0' where `player` = '".$name."'");
 		}
+
+		// Catch admins
+		if(preg_match("/set role of player (.*?) to admin/i", $log, $m))
+		{
+			self::mysqlQuery("update `".$this->dbprefix."current_game` set `role` = 'normal'");
+			self::mysqlQuery("update `".$this->dbprefix."current_game` set `role` = 'admin' where `player` = '".$m[1]."'");
+		}
+		if(preg_match("/set role of player (.*?) to normal player/i", $log, $m))
+		{
+			self::mysqlQuery("update `".$this->dbprefix."current_game` set `role` = 'normal' where `player` = '".$m[1]."'");
+		}
 		
 		
 		// Catch New Games
@@ -265,8 +292,12 @@ class ScoreKeeper
 		// Catch suicides
 		if(preg_match("/^\[(.*?)\] (.*?) suicided$/", $log, $m))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`-1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[2]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `suicides` = `suicides`+1 where `player` = '".$m[2]."'");
 		}
 
 
@@ -282,33 +313,52 @@ class ScoreKeeper
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
 
 			// Long Running Stats stuff
-			
-
-
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `frags` = `frags`+1 where `player` = '".$m[2]."'");
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
 		}
 		// Catch slashes
 		if(preg_match("/^\[(.*?)\] (.*?) slashed (.*?)$/", $log, $m) && !preg_match("/slashed teammate/", $log))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`+2 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `slashes` = `slashes`+1 where `player` = '".$m[2]."'");
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
 		}
 		// Catch headshots
 		if(preg_match("/^\[(.*?)\] (.*?) headshot (.*?)$/", $log, $m) && !preg_match("/headshot teammate/", $log))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`+2 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `headshots` = `headshots`+1 where `player` = '".$m[2]."'");
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
 		}
 		// Catch splatters
 		if(preg_match("/^\[(.*?)\] (.*?) splattered (.*?)$/", $log, $m) && !preg_match("/splattered teammate/", $log))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`+1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `splatters` = `splatters`+1 where `player` = '".$m[2]."'");
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
 		}
 		// Catch gibs
 		if(preg_match("/^\[(.*?)\] (.*?) gibbed (.*?)$/", $log, $m) && !preg_match("/gibbed teammate/", $log))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`+1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `gibs` = `gibs`+1 where `player` = '".$m[2]."'");
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
 		}
 
 
@@ -320,32 +370,52 @@ class ScoreKeeper
 		// Catch Frags
 		if(preg_match("/^\[(.*?)\] (.*?) fragged teammate (.*?)$/", $log, $m))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`-1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 		}
 		// Catch slashes
 		if(preg_match("/^\[(.*?)\] (.*?) slashed teammate (.*?)$/", $log, $m))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`-1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 		}
 		// Catch headshots
 		if(preg_match("/^\[(.*?)\] (.*?) headshot teammate (.*?)$/", $log, $m))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`-1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 		}
 		// Catch splatters
 		if(preg_match("/^\[(.*?)\] (.*?) splattered teammate (.*?)$/", $log, $m))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`+1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 		}
 		// Catch gibs
 		if(preg_match("/^\[(.*?)\] (.*?) gibbed teammate (.*?)$/", $log, $m))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`+1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 		}
 
 		
@@ -354,14 +424,47 @@ class ScoreKeeper
 		// Catch KTF Scores
 		if(preg_match("/^\[(.*?)\] (.*?) scored, carrying for (.*?) seconds, new score (.*?)$/", $log, $m))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `flags` = `flags`+1 where `player` = '".$m[2]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `flags` = `flags`+1 where `player` = '".$m[2]."'");
 		}
 
 		// Catch CTF Scores
 		if(preg_match("/^\[(.*?)\] (.*?) scored with the flag for (.*?), new score(.*?)$/", $log, $m))
 		{
+			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `flags` = `flags`+1 where `player` = '".$m[2]."'");
+
+			// Long Running Stats stuff
+			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `flags` = `flags`+1 where `player` = '".$m[2]."'");
 		}
+
+
+		
+		//************************ SPEECH **********************************//
+
+		// Catch speech to all
+		if(preg_match("/^\[(.*?)\] (.*?) says\: \'(.*?)\'$/", $log, $m))
+		{
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$m[2]."', `chat` = '".addslashes($m[3])."', `ip` = '".$m[1]."', `destination` = 'ALL', `time` = '".time()."'");
+			self::cleanChat();
+		}
+		// Catch speech to RVSF
+		if(preg_match("/^\[(.*?)\] (.*?) says to team RVSF\: \'(.*?)\'$/", $log, $m))
+		{
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$m[2]."', `chat` = '".addslashes($m[3])."', `ip` = '".$m[1]."', `destination` = 'RVSF', `time` = '".time()."'");
+			self::cleanChat();
+		}
+		// Catch speech to CLA
+		if(preg_match("/^\[(.*?)\] (.*?) says to team CLA\: \'(.*?)\'$/", $log, $m))
+		{
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$m[2]."', `chat` = '".addslashes($m[3])."', `ip` = '".$m[1]."', `destination` = 'CLA', `time` = '".time()."'");
+			self::cleanChat();
+		}
+
+
 
 	}
 }
