@@ -3,7 +3,7 @@
 .-----------------------------------------------------------------------------.
 |    Software: ScoreKeeper - keeps score for acRunner                         |
 |     Version: 1.0.0                                                          |
-|     Contact: via irc on irc.gamesurge.net as Fiz                            |
+|     Contact: via irc on irc.gamesurge.net as YMH|Fiz or just Fiz            |
 | IRC Support: #acRunner @ irc.gamesurge.net                                  |
 | --------------------------------------------------------------------------- |
 |    Author: Marc Seiler (project admininistrator)                            |
@@ -310,13 +310,7 @@ class ScoreKeeper
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `flags` = `flags`+1 where `player` = '".$m[2]."'");
 		}
 
-
-
-
 	}
-
-
-
 }
 
 ?>
