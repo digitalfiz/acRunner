@@ -80,7 +80,7 @@ class ScoreKeeper
 		self::setOption("current_mode", "");
 
 		// Long run stats table
-		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."player_stats` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `frags` INT NOT NULL, `slashes` INT NOT NULL, `headshots` INT NOT NULL, `splatters` INT NOT NULL, `gibs` INT NOT NULL, `flags` INT NOT NULL, `tks` INT NOT NULL, `suicides` INT NOT NULL) ENGINE = MyISAM;");
+		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."player_stats` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `frags` INT NOT NULL, `slashes` INT NOT NULL, `headshots` INT NOT NULL, `splatters` INT NOT NULL, `gibs` INT NOT NULL, `flags` INT NOT NULL, `tks` INT NOT NULL, `suicides` INT NOT NULL, `deaths` INT NOT NULL) ENGINE = MyISAM;");
 
 		// chat log table
 		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."chat` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `destination` VARCHAR(5) NOT NULL, `chat` VARCHAR(255) NOT NULL, `ip` VARCHAR(30) NOT NULL, `time` INT NOT NULL) ENGINE = MyISAM;");
