@@ -368,7 +368,7 @@ class ScoreKeeper
 		//
 
 		// Catch Frags
-		if(preg_match("/^\[(.*?)\] (.*?) fragged teammate (.*?)$/", $log, $m))
+		if(preg_match("/^\[(.*?)\] (.*?) fragged his teammate (.*?)$/", $log, $m))
 		{
 			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`-1 where `player` = '".$m[2]."'");
@@ -378,7 +378,7 @@ class ScoreKeeper
 			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 		}
 		// Catch slashes
-		if(preg_match("/^\[(.*?)\] (.*?) slashed teammate (.*?)$/", $log, $m))
+		if(preg_match("/^\[(.*?)\] (.*?) slashed his teammate (.*?)$/", $log, $m))
 		{
 			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`-1 where `player` = '".$m[2]."'");
@@ -388,7 +388,7 @@ class ScoreKeeper
 			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 		}
 		// Catch headshots
-		if(preg_match("/^\[(.*?)\] (.*?) headshot teammate (.*?)$/", $log, $m))
+		if(preg_match("/^\[(.*?)\] (.*?) headshot his teammate (.*?)$/", $log, $m))
 		{
 			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`-1 where `player` = '".$m[2]."'");
@@ -398,7 +398,7 @@ class ScoreKeeper
 			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 		}
 		// Catch splatters
-		if(preg_match("/^\[(.*?)\] (.*?) splattered teammate (.*?)$/", $log, $m))
+		if(preg_match("/^\[(.*?)\] (.*?) splattered his teammate (.*?)$/", $log, $m))
 		{
 			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`+1 where `player` = '".$m[2]."'");
@@ -408,7 +408,7 @@ class ScoreKeeper
 			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 		}
 		// Catch gibs
-		if(preg_match("/^\[(.*?)\] (.*?) gibbed teammate (.*?)$/", $log, $m))
+		if(preg_match("/^\[(.*?)\] (.*?) gibbed his teammate (.*?)$/", $log, $m))
 		{
 			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`+1 where `player` = '".$m[2]."'");
