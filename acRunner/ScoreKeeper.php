@@ -85,6 +85,10 @@ class ScoreKeeper
 		// chat log table
 		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."chat` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `destination` VARCHAR(5) NOT NULL, `chat` VARCHAR(255) NOT NULL, `ip` VARCHAR(30) NOT NULL, `time` INT NOT NULL) ENGINE = MyISAM;");
 
+
+		// connect log table
+		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."connection_log` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `ip` VARCHAR(30) NOT NULL, `kicked` VARCHAR(255) NOT NULL, `time` int(11) NOT NULL) ENGINE = MyISAM;");
+
 	}
 
 
@@ -137,6 +141,13 @@ class ScoreKeeper
 		// Now lets keep the chat cleaned up. Anything older then an hour is emptied out.
 		$time = time() - (60 * 60);
 		self::mysqlQuery("delete from `".$this->dbprefix."chat` where `time` < ".$time."");
+
+		// we should clean out connect logs that are older then 24hrs and have a normal disconnect
+		$time = time() - (60 * 60) * 24;
+		// 24hrs should suffice
+		self::mysqlQuery("delete from `".$this->dbprefix."connection_log` where `time` < ".$time." && `kicked` <> 'none'");
+		// oh yeah and just for clean up maybe we should delete any that it didnt set a kicked for. If they havent left after 24hours something went wrong
+		self::mysqlQuery("delete from `".$this->dbprefix."connection_log` where `time` < ".$time." && `kicked` = ''");
 	}
 
 
@@ -202,6 +213,11 @@ class ScoreKeeper
 			$result = self::mysqlQuery("select * from `".$this->dbprefix."player_stats` where `player` = '".$name."'");
 			$res = mysql_fetch_assoc($result);
 			if($res['player'] == '') { self::mysqlQuery("insert into `".$this->dbprefix."player_stats` set `player` = '".$name."'"); }
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$name."', `chat` = 'Connected', `ip` = '".$ip."', `destination` = 'CON', `time` = '".time()."'");
+
+			// add a log for the connection so we can keep track
+			self::mysqlQuery("insert into `".$this->dbprefix."connection_log` set `player` = '".$name."', `ip` = '".$ip."', `time` = '".time()."'");
+
 
 		}
 		// Catch Disconnects
@@ -213,6 +229,31 @@ class ScoreKeeper
 			$name = trim($e[0]);
 			
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `active` = '0' where `player` = '".$name."'");
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$name."', `chat` = 'Disconnected', `ip` = '".$ip."', `destination` = 'DIS', `time` = '".time()."'");
+
+			// update the connection log for the disconnect
+			self::mysqlQuery("update `".$this->dbprefix."connection_log` set `kicked` = 'none' where `player` = '".$name."' && `ip` = '".$ip."' && `kicked` = ''");
+
+		}
+
+		// Catch disconnecting cuz they where kicked for some reason
+		//[24.94.96.106] disconnecting client YMH|Fiz (unsuccessful administrator login) cn 0,
+		if(preg_match("/disconnecting client/i", $log))
+		{
+			$e = explode("] disconnecting client", substr($log, 1), 2);
+			$ip = $e[0];
+			$e = explode("(", $e[1], 2);
+			$name = trim($e[0]);
+			$e = explode(")", $e[1], 2);
+			$reason = trim($e[0]);
+			
+			self::mysqlQuery("update `".$this->dbprefix."current_game` set `active` = '0' where `player` = '".$name."'");
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$name."', `chat` = 'Disconnecting (".$reason.")', `ip` = '".$ip."', `destination` = 'DIS', `time` = '".time()."'");
+
+
+
+			// update the connection log for the disconnect
+			self::mysqlQuery("update `".$this->dbprefix."connection_log` set `kicked` = '".$reason."' where `player` = '".$name."' && `ip` = '".$ip."' && `kicked` = ''");
 		}
 
 		// Catch admins
@@ -270,7 +311,15 @@ class ScoreKeeper
 
 			$number = array_shift($ex);
 			$name = array_shift($ex);
-			$team = array_shift($ex);
+
+			// This was added to gurentee we dont get weird numbers.
+			switch(array_shift($ex))
+			{
+				case('SPEC'): $team = "SPEC"; break;
+				case('RVSF'): $team = "RVSF"; break;
+				case('CLA'): $team = "CLA"; break;
+				default: $team = "PLAYER"; break;
+			}
 
 			// if this is a number it must be their cn
 			if(is_numeric($number)) { self::mysqlQuery("update `".$this->dbprefix."current_game` set `cn` = '".$number."', `team` = '".$team."' where `player` = '".$name."'"); }
