@@ -454,9 +454,14 @@ class ScoreKeeper
 			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`-1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+			self::mysqlQuery("update `".$this->dbprefix."current_game` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 
 			// Long Running Stats stuff
 			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
+
+
+			// Insert new game in the chat log
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$m[2]."', `chat` = '".$m[3]."', `ip` = '".$m[1]."', `destination` = 'TK', `time` = '".time()."'");
 		}
 		// Catch slashes
 		if(preg_match("/^\[(.*?)\] (.*?) slashed his teammate (.*?)$/", $log, $m))
@@ -464,9 +469,14 @@ class ScoreKeeper
 			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`-1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+			self::mysqlQuery("update `".$this->dbprefix."current_game` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 
 			// Long Running Stats stuff
 			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
+
+
+			// Insert new game in the chat log
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$m[2]."', `chat` = '".$m[3]."', `ip` = '".$m[1]."', `destination` = 'TK', `time` = '".time()."'");
 		}
 		// Catch headshots
 		if(preg_match("/^\[(.*?)\] (.*?) headshot his teammate (.*?)$/", $log, $m))
@@ -474,9 +484,14 @@ class ScoreKeeper
 			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`-1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+			self::mysqlQuery("update `".$this->dbprefix."current_game` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 
 			// Long Running Stats stuff
 			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
+
+
+			// Insert new game in the chat log
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$m[2]."', `chat` = '".$m[3]."', `ip` = '".$m[1]."', `destination` = 'TK', `time` = '".time()."'");
 		}
 		// Catch splatters
 		if(preg_match("/^\[(.*?)\] (.*?) splattered his teammate (.*?)$/", $log, $m))
@@ -484,9 +499,14 @@ class ScoreKeeper
 			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`+1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+			self::mysqlQuery("update `".$this->dbprefix."current_game` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 
 			// Long Running Stats stuff
 			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
+
+
+			// Insert new game in the chat log
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$m[2]."', `chat` = '".$m[3]."', `ip` = '".$m[1]."', `destination` = 'TK', `time` = '".time()."'");
 		}
 		// Catch gibs
 		if(preg_match("/^\[(.*?)\] (.*?) gibbed his teammate (.*?)$/", $log, $m))
@@ -494,9 +514,14 @@ class ScoreKeeper
 			// Realtime stuff
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `frags` = `frags`+1 where `player` = '".$m[2]."'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = `deaths`+1 where `player` = '".$m[3]."'");
+			self::mysqlQuery("update `".$this->dbprefix."current_game` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
 
 			// Long Running Stats stuff
 			self::mysqlQuery("update `".$this->dbprefix."player_stats` set `tks` = `tks`+1 where `player` = '".$m[2]."'");
+
+
+			// Insert new game in the chat log
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$m[2]."', `chat` = '".$m[3]."', `ip` = '".$m[1]."', `destination` = 'TK', `time` = '".time()."'");
 		}
 
 		
