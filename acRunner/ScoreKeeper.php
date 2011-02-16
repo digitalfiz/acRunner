@@ -256,18 +256,47 @@ class ScoreKeeper
 			self::mysqlQuery("update `".$this->dbprefix."connection_log` set `kicked` = '".$reason."' where `player` = '".$name."' && `ip` = '".$ip."' && `kicked` = ''");
 		}
 
+
+		// Catch Name changes
+		if(preg_match("/^\[(.*?)\] (.*?) changed name to (.*?)$/i", $log, $m))
+		{
+			$ip = $m[1];
+			$from = $m[2];
+			$to = $m[3];
+
+			self::mysqlQuery("update `".$this->dbprefix."current_game` set `player` = '".$to."' where `player` = '".$from."' && `host` = '".$ip."'");
+			
+			// Insert name change in the chat log
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$from."', `chat` = '".$to."', `ip` = '".$ip."', `destination` = 'NC', `time` = '".time()."'");
+		}
+
 		// Catch admins
 		if(preg_match("/set role of player (.*?) to admin/i", $log, $m))
 		{
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `role` = 'normal'");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `role` = 'admin' where `player` = '".$m[1]."'");
+			
+			// Insert admin claim in the chat log
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$m[1]."', `chat` = 'admin', `ip` = '0.0.0.0', `destination` = 'CA', `time` = '".time()."'");
 		}
 		if(preg_match("/set role of player (.*?) to normal player/i", $log, $m))
 		{
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `role` = 'normal' where `player` = '".$m[1]."'");
 		}
 		
-		
+		// Catch Votes
+		//[24.94.96.106] client YMH|Fiz called a vote: load map 'ac_arctic' in mode 'deathmatch'
+		if(preg_match("/^\[(.*?)\] client (.*?) called a vote: (.*?)$/", $log, $m))
+		{
+			$ip = $m[1];
+			$player = $m[2];
+			$vote = $m[3];
+			
+			// Insert called vote in the chat log
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".$player."', `chat` = '".addslashes($vote)."', `ip` = '".$ip."', `destination` = 'VOTE', `time` = '".time()."'");
+		}
+
+
 		// Catch New Games
 		if(preg_match("/^Game start: (.*?)$/", $log, $m))
 		{
@@ -286,6 +315,9 @@ class ScoreKeeper
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `score` = 0");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `deaths` = 0");
 			self::mysqlQuery("update `".$this->dbprefix."current_game` set `tks` = 0");
+
+			// Insert new game in the chat log
+			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = 'New Game', `chat` = '".$mode.", ".$map."', `ip` = '0.0.0.0', `destination` = 'NG', `time` = '".time()."'");
 
 			// Also for cleanliness lets clear out inactive players.
 			self::mysqlQuery("delete from `".$this->dbprefix."current_game` where `active` = 0");
