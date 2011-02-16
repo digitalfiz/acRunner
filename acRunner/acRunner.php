@@ -61,6 +61,11 @@ class acRunner
 		// Required by php for some reason
 		declare(ticks = 1);
 		$this->acRunner_pid = posix_getpid();
+
+		// Lets write it to a file for other scripts to use
+		$fp = fopen($this->cwd."/server.pid", "w");
+		fputs($fp, $this->acRunner_pid);
+		fclose($fp);
 		
 
 		$this->sk = new ScoreKeeper();
