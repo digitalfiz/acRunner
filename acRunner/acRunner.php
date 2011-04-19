@@ -55,6 +55,7 @@ class acRunner
 
 		$this->cwd = $cwd;
 		$this->cmd = $cmd;
+		
 
 		self::outputLog($cwd);
 
@@ -69,6 +70,8 @@ class acRunner
 		
 
 		$this->sk = new ScoreKeeper();
+		$this->sk->setOption("last_started", time());
+		$this->sk->setOption("current_version", VERSION);
 		
 		
 		self::outputLog("acRunner PID: ".$this->acRunner_pid."\n");

@@ -16,6 +16,12 @@ include "mysql.php";
 //define('MYSQL_DATABASE', 'database');
 //define('SERVER_ID', '1');
 
+
+// DO NOT CHANGE ANYTHING BELOW THIS LINE UNLESS YOU WANT TO :P
+
+
+define('VERSION', '1.1'); // Simply for archival purposes and makes it accessible in the database for any guis you want to make/use
+
 $acServer = new acRunner();
 
 

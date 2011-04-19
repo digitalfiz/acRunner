@@ -2,7 +2,7 @@
 /*~ ScoreKeeper.php
 .-----------------------------------------------------------------------------.
 |    Software: ScoreKeeper - keeps score for acRunner                         |
-|     Version: 1.0.0                                                          |
+|     Version: 1.1                                                            |
 |     Contact: via irc on irc.gamesurge.net as YMH|Fiz or just Fiz            |
 | IRC Support: #acRunner @ irc.gamesurge.net                                  |
 | --------------------------------------------------------------------------- |
@@ -75,19 +75,19 @@ class ScoreKeeper
 		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `".$this->dbprefix."current_game` (`cn` INT NOT NULL, `player` VARCHAR(15) NOT NULL, `team` VARCHAR(4) NOT NULL, `flags` INT NOT NULL, `score` INT NOT NULL, `frags` INT NOT NULL, `deaths` INT NOT NULL, `tks` INT NOT NULL, `ping` INT NOT NULL, `role` VARCHAR(6) NOT NULL, `host` VARCHAR(50) NOT NULL, `active` int(11) NOT NULL DEFAULT '1') ENGINE = MyISAM;");
 
 
-		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."options` (`id` INT NOT NULL, `name` VARCHAR(20) NOT NULL, `value` VARCHAR(255) NOT NULL) ENGINE = MyISAM;");
+		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `".$this->dbprefix."options` (`id` INT NOT NULL, `name` VARCHAR(20) NOT NULL, `value` VARCHAR(255) NOT NULL) ENGINE = MyISAM;");
 		self::setOption("current_map", "");
 		self::setOption("current_mode", "");
 
 		// Long run stats table
-		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."player_stats` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `frags` INT NOT NULL, `slashes` INT NOT NULL, `headshots` INT NOT NULL, `splatters` INT NOT NULL, `gibs` INT NOT NULL, `flags` INT NOT NULL, `tks` INT NOT NULL, `suicides` INT NOT NULL, `deaths` INT NOT NULL) ENGINE = MyISAM;");
+		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `".$this->dbprefix."player_stats` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `frags` INT NOT NULL, `slashes` INT NOT NULL, `headshots` INT NOT NULL, `splatters` INT NOT NULL, `gibs` INT NOT NULL, `flags` INT NOT NULL, `tks` INT NOT NULL, `suicides` INT NOT NULL, `deaths` INT NOT NULL) ENGINE = MyISAM;");
 
 		// chat log table
-		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."chat` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `destination` VARCHAR(5) NOT NULL, `chat` VARCHAR(255) NOT NULL, `ip` VARCHAR(30) NOT NULL, `time` INT NOT NULL) ENGINE = MyISAM;");
+		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `".$this->dbprefix."chat` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `destination` VARCHAR(5) NOT NULL, `chat` VARCHAR(255) NOT NULL, `ip` VARCHAR(30) NOT NULL, `time` INT NOT NULL) ENGINE = MyISAM;");
 
 
 		// connect log table
-		self::mysqlQuery("CREATE TABLE `".$this->dbprefix."connection_log` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `ip` VARCHAR(30) NOT NULL, `kicked` VARCHAR(255) NOT NULL, `time` int(11) NOT NULL) ENGINE = MyISAM;");
+		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `".$this->dbprefix."connection_log` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `ip` VARCHAR(30) NOT NULL, `kicked` VARCHAR(255) NOT NULL, `time` int(11) NOT NULL) ENGINE = MyISAM;");
 
 	}
 
@@ -253,12 +253,11 @@ class ScoreKeeper
 		}
 
 		// Catch disconnecting cuz they where kicked for some reason
-		//[24.94.96.106] disconnecting client YMH|Fiz (unsuccessful administrator login) cn 0,
 		if(preg_match("/disconnecting client/i", $log))
 		{
 			$e = explode("] disconnecting client", substr($log, 1), 2);
 			$ip = $e[0];
-			$e = explode(" ", $e[1], 2);
+			$e = explode(" ", trim($e[1]), 2);
 			$name = $e[0];
 			$reason_junk = explode(") cn", substr(trim($e[1]), 1));
 			$reason = $reason_junk[0];
@@ -359,7 +358,7 @@ class ScoreKeeper
 
 			$number = array_shift($ex);
 			$name = array_shift($ex);
-			$ping = $ex[(count($ex) - 1)];
+			$ping = $ex[(count($ex) - 3)];
 
 			// This was added to gurentee we dont get weird numbers.
 			switch(array_shift($ex))
