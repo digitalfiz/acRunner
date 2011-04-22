@@ -31,6 +31,7 @@
 class ScoreKeeper
 {
 	public $dbprefix;
+	public $thismonth;
 	/**
 	* This is the constructor. Nothing more... nothing less...
 	*
@@ -45,7 +46,7 @@ class ScoreKeeper
 		
 		if(MYSQL_PREFIX == "" || MYSQL_PREFIX == 'MYSQL_PREFIX') { $this->dbprefix = "acRunner_"; }
 
-
+		$this->thismonth = strtotime("1 ".date("F")." ".date("Y"));
 
 		// Check for table and if it doesnt exist make it
 		self::checkForDatabase();
@@ -53,6 +54,8 @@ class ScoreKeeper
 		// Now lets empty the logs. Comment this out if you dont want logs cleared everytime the script is started.
 		self::mysqlQuery("delete from `".$this->dbprefix."logs`");
 		self::mysqlQuery("delete from `".$this->dbprefix."current_game`");
+		
+		
 	}
 
 
@@ -66,6 +69,8 @@ class ScoreKeeper
 		// Creating a function/method for creating a database is probably overkill but
 		// I did it for easy of use and extensibility. All your checking for proper database
 		// configuration can be done in here now.
+		
+		acRunner::outputLog("Checking databases and makign sure they exists...\n");
 
 		// general log file, just used for now to examine logs
 		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `".$this->dbprefix."logs` (`id` bigint(11) NOT NULL AUTO_INCREMENT, `sid` int(11) NOT NULL, `log` longtext NOT NULL, `time` int(11) NOT NULL, PRIMARY KEY (`id`)) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;");
@@ -80,7 +85,10 @@ class ScoreKeeper
 		self::setOption("current_mode", "");
 
 		// Long run stats table
-		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `".$this->dbprefix."player_stats` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `frags` INT NOT NULL, `slashes` INT NOT NULL, `headshots` INT NOT NULL, `splatters` INT NOT NULL, `gibs` INT NOT NULL, `flags` INT NOT NULL, `tks` INT NOT NULL, `suicides` INT NOT NULL, `deaths` INT NOT NULL) ENGINE = MyISAM;");
+		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `".$this->dbprefix."player_stats` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `frags` INT NOT NULL, `slashes` INT NOT NULL, `headshots` INT NOT NULL, `splatters` INT NOT NULL, `gibs` INT NOT NULL, `flags` INT NOT NULL, `tks` INT NOT NULL, `suicides` INT NOT NULL, `deaths` INT NOT NULL, `month` INT NOT NULL) ENGINE = MyISAM;");
+
+		// Long run stats table archive
+		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `".$this->dbprefix."player_stats_archive` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `frags` INT NOT NULL, `slashes` INT NOT NULL, `headshots` INT NOT NULL, `splatters` INT NOT NULL, `gibs` INT NOT NULL, `flags` INT NOT NULL, `tks` INT NOT NULL, `suicides` INT NOT NULL, `deaths` INT NOT NULL, `month` INT NOT NULL) ENGINE = MyISAM;");
 
 		// chat log table
 		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `".$this->dbprefix."chat` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `destination` VARCHAR(5) NOT NULL, `chat` VARCHAR(255) NOT NULL, `ip` VARCHAR(30) NOT NULL, `time` INT NOT NULL) ENGINE = MyISAM;");
@@ -88,6 +96,21 @@ class ScoreKeeper
 
 		// connect log table
 		self::mysqlQuery("CREATE TABLE IF NOT EXISTS `".$this->dbprefix."connection_log` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `player` VARCHAR(15) NOT NULL, `ip` VARCHAR(30) NOT NULL, `kicked` VARCHAR(255) NOT NULL, `time` int(11) NOT NULL) ENGINE = MyISAM;");
+
+
+
+		
+		acRunner::outputLog("Optimizing databases...\n");
+		// lets optimize the tables so the script stays running good!
+		self::mysqlQuery("OPTIMIZE TABLE `".$this->dbprefix."chat`, `".$this->dbprefix."connection_log`, `".$this->dbprefix."current_game`, `".$this->dbprefix."logs`, `".$this->dbprefix."options`, `".$this->dbprefix."player_stats`");
+
+
+		
+		acRunner::outputLog("Archiving old player stats...\n");
+		// Now lets more old stats to the archive because we only want to deal with this months for performance reasons
+		self::mysqlQuery("INSERT INTO `".$this->dbprefix."player_stats_archive` SELECT * from `".$this->dbprefix."player_stats` where `month` <> '".$this->thismonth."' && `frags` > 100");
+		// Then clean it out
+		self::mysqlQuery("delete from `".$this->dbprefix."player_stats` where `month` <> '".$this->thismonth."'");
 
 	}
 
@@ -228,7 +251,7 @@ class ScoreKeeper
 			// Now lets do the same for the player stats table
 			$result = self::mysqlQuery("select * from `".$this->dbprefix."player_stats` where `player` = '".self::cleanString($name)."'");
 			$res = mysql_fetch_assoc($result);
-			if($res['player'] == '') { self::mysqlQuery("insert into `".$this->dbprefix."player_stats` set `player` = '".$name."'"); }
+			if($res['player'] == '') { self::mysqlQuery("insert into `".$this->dbprefix."player_stats` set `player` = '".$name."', `month` = '".$this->thismonth."'"); }
 			self::mysqlQuery("insert into `".$this->dbprefix."chat` set `player` = '".self::cleanString($name)."', `chat` = 'Connected', `ip` = '".self::cleanString($ip)."', `destination` = 'CON', `time` = '".time()."'");
 
 			// add a log for the connection so we can keep track

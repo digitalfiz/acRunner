@@ -55,9 +55,6 @@ class acRunner
 
 		$this->cwd = $cwd;
 		$this->cmd = $cmd;
-		
-
-		self::outputLog($cwd);
 
 		// Required by php for some reason
 		declare(ticks = 1);
