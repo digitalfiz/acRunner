@@ -39,7 +39,6 @@ class acRunner
 	public $fp;
 	public $read_error = true;
 	public $read_output = true;
-	public $sk;
 
 
 	/**
@@ -65,22 +64,44 @@ class acRunner
 		fputs($fp, $this->acRunner_pid);
 		fclose($fp);
 		
-
-		$this->sk = new ScoreKeeper();
-		$this->sk->setOption("last_started", time());
-		$this->sk->setOption("current_version", VERSION);
 		
 		
-		self::outputLog("acRunner PID: ".$this->acRunner_pid."\n");
+		// Lets include the includes...
+		$d = dir($this->cwd."/includes");
+		while (false !== ($entry = $d->read()))
+		{
+			if(preg_match("/\.php/i", $entry))
+			{
+				include $this->cwd."/includes/".$entry;
+			}
+		}
+		$d->close();
+		
+		// Lets include the modules...
+		$d = dir($this->cwd."/modules");
+		while (false !== ($entry = $d->read()))
+		{
+			if(preg_match("/\.php/i", $entry))
+			{
+				include $this->cwd."/modules/".$entry;
+			}
+		}
+		$d->close();
+		
+		run_hook('init');
+		
+	
+		
+		outputLog("acRunner PID: ".$this->acRunner_pid."\n");
 
 		// This will keep track of how many times server is restart
 		$restarts = 0;
 
 		while(true)
 		{
-			self::outputLog("Starting the server");
+			outputLog("Starting the server");
 			self::startServer();
-			self::outputLog("Server died lets restart it!");
+			outputLog("Server died lets restart it!");
 			$restarts++;
 			// Something went wrong we should just stop and notify the owner
 			if($restarts > 10) { break; }
@@ -99,6 +120,7 @@ class acRunner
 	*/
 	public function startServer()
 	{
+		run_hook('before_start');
 
 		$this->fp = proc_open($this->cmd,
 		  array(
@@ -112,12 +134,14 @@ class acRunner
 		$status = proc_get_status($this->fp);
 		$this->server_pid = $status['pid'];
 
-		self::outputLog("Server PID: ".$this->server_pid);
+		outputLog("Server PID: ".$this->server_pid);
 
 		pcntl_signal(SIGUSR1, array($this, 'closeUp'));
 		pcntl_signal(SIGTERM, array($this, 'closeUp'));
 		stream_set_blocking($this->pipes[1], 0);
 		stream_set_blocking($this->pipes[2], 0);
+		
+		run_hook('after_start', $this);
 
 		while ($this->read_error != false or $this->read_output != false)
 		{
@@ -145,13 +169,15 @@ class acRunner
 				$err = trim(fgets($this->pipes[2], 4096));
 
 				// Not doing anything with errors right now but possible for future
-				if($err != '') { self::outputLog("Error: ".$err); }
+				if($err != '') { outputLog("Error: ".$err); }
 
 				// Process buffer
 				if($buffer != '')
-				{
-					$this->sk->process($buffer);
-					self::outputLog($buffer);
+				{		
+					preg_match("/^(\w+) (\d+) (\d+)\:(\d+)\:(\d+) (.*?)$/i", $buffer, $m);
+					$buffer = $m[6];
+					run_hook('buffer_loop', $buffer);
+					outputLog($buffer);
 				}
 
 			}
@@ -160,19 +186,6 @@ class acRunner
 		// While Loop was exited lets make sure everything is closed.
 		$status = proc_get_status($this->fp);
 		posix_kill($status['pid'], SIGTERM);
-	}
-
-
-	/**
-	* Spits out a console log of whatever is in $log
-	*
-	* @param	string $log		The log line to output
-	*
-	* @access public
-	*/
-	public function outputLog($log)
-	{
-		echo date("[m/d/Y H:i:s] ").$log."\n";
 	}
 
 
