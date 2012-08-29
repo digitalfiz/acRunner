@@ -7,7 +7,7 @@
 | IRC Support: #acRunner @ irc.gamesurge.net                                  |
 | --------------------------------------------------------------------------- |
 |    Author: Marc Seiler (project admininistrator)                            |
-| Copyright (c) 20010, Marc Seiler. All Rights Reserved.                      |
+| Copyright (c) 2012, Marc Seiler. All Rights Reserved.                      |
 | --------------------------------------------------------------------------- |
 |   License: Distributed under the Lesser General Public License (LGPL)       |
 |            http://www.gnu.org/copyleft/lesser.html                          |
